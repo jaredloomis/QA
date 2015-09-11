@@ -1,3 +1,7 @@
+-- | Old implementation of QA test steps.
+--      > Not monadic
+--      > Tests are represented as a list of steps
+--      > Look in 'Test' module for new version
 module QA where
 
 import JavaScript

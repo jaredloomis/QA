@@ -41,8 +41,8 @@ assign = command "Assign" *> (Assign <$> query <*> lexeme quotedStr)
 
 execute :: Parser Action
 execute = Execute <$>
-    (command "Execute" *>
-    between (char '{') (char '}') (lexeme . many $ noneOf "}"))
+    (command "Execute" *> lexeme (string "{{") *>
+    lexeme (manyTill anyChar (string "}}")))
 
 assertion :: Parser Assertion
 assertion = fmap TextExists (command "TextExists" *> quotedStr)

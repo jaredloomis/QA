@@ -2,10 +2,10 @@ Login:
 GoToUrl "http://qa.trackmypos.com/apollo"
 TextExists "Log In"
 Assign $(#UserName) "apollo"
-Assign $(#Password) "1234"
+Assign $(#Password) ""
 Click  $(.login-action)
 TextExists "Dashboard"
 
-Execute {
+Execute {{
     document.write("Hello");
-}
+}}
