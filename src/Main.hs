@@ -12,6 +12,7 @@ main = putStrLn . concatMap codegenTop . suiteToJS $ [NamedTest "login" login]
 login :: Test ()
 login = do
     goToUrl    "http://qa.trackmypos.com/apollo"
+    true       "return true;"
     textExists "Log In"
     assign     "#UserName" "apollo"
     assign     "#Password" ""

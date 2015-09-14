@@ -1,7 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module Test where
 
-import Data.Foldable
 import Control.Monad.Free
 
 import Element
@@ -33,6 +32,9 @@ execute js = liftF $ Execute js ()
 textExists :: String -> Test ()
 textExists str = liftF $ TextExists str ()
 
+true :: String -> Test ()
+true js = liftF $ JSTrue js ()
+
 ------------------
 -- Test Functor --
 ------------------
@@ -45,6 +47,7 @@ data TestF next =
   | Execute String         next
     -- Assertions
   | TextExists String      next
+  | JSTrue  String         next
   deriving (Show, Eq)
 
 instance Functor TestF where
@@ -53,6 +56,7 @@ instance Functor TestF where
     fmap f (Assign e str x)   = Assign e str (f x)
     fmap f (Execute js x)     = Execute js (f x)
     fmap f (TextExists str x) = TextExists str (f x)
+    fmap f (JSTrue js x)      = JSTrue js (f x)
 
 flatten :: Test a -> [TestF ()]
 flatten (Free (GoToUrl    u next)) = GoToUrl    u () : flatten next
@@ -60,6 +64,7 @@ flatten (Free (Click      e next)) = Click      e () : flatten next
 flatten (Free (Assign   e t next)) = Assign   e t () : flatten next
 flatten (Free (Execute    j next)) = Execute    j () : flatten next
 flatten (Free (TextExists t next)) = TextExists t () : flatten next
+flatten (Free (JSTrue     j next)) = JSTrue     j () : flatten next
 flatten (Pure _)                   = []
 
 -------------------
@@ -143,6 +148,10 @@ testToStmts (Free (TextExists str next)) =
         (JSApp (casperTest ~> "assertSelectorHasText")
                [JSStr "*", JSStr str])) :
     testToStmts next
+testToStmts (Free (JSTrue js next)) = JSExpr
+    (casper ~> "then" ~$ jsLam
+        (casperTest ~> "assertEval" ~$ jsLam (JSRaw js))) :
+    testToStmts next
 testToStmts (Pure _) = []
 
 -------------
@@ -151,6 +160,7 @@ testToStmts (Pure _) = []
 
 isAssert :: TestF a -> Bool
 isAssert (TextExists _ _) = True
+isAssert (JSTrue     _ _) = True
 isAssert _                = False
 
 thenEvaluate :: [JSStmt] -> JSStmt
